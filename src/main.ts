@@ -2,8 +2,6 @@ import {vec3, vec4} from 'gl-matrix';
 const Stats = require('stats-js');
 import * as DAT from 'dat.gui';
 import Icosphere from './geometry/Icosphere';
-import Square from './geometry/Square';
-import Cube from './geometry/Cube';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 import {setGL} from './globals';
@@ -13,26 +11,24 @@ import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
   Tesselations: 5,
-  Color: [255, 0, 0],
-  Geometry: true,
+  BaseColor: [255, 0, 0],
+  SecondaryColor: [190, 76, 0],
+  TertiaryColor: [255, 225, 0],
+  Persistence: 0.5,
+  Amplitude: 0.5,
+  Frequency: 2.0,
+  Octaves: 6,
   'Load Scene': loadScene, // A function pointer, essentially
 };
 
 let icosphere: Icosphere;
-let square: Square;
-let cube: Cube;
 let prevTesselations: number = 5;
-let prevColor: number[] = [255, 0, 0];
 let time: number = 0.0;
-let toDraw: Array<Cube | Icosphere> = [];
+let toDraw: Array<Icosphere> = [];
 
 function loadScene() {
   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.Tesselations);
   icosphere.create();
-  square = new Square(vec3.fromValues(0, 0, 0));
-  square.create();
-  cube = new Cube(vec3.fromValues(0, 0, 0));
-  cube.create();
 }
 
 function main() {
@@ -47,8 +43,13 @@ function main() {
   // Add controls to the gui
   const gui = new DAT.GUI();
   gui.add(controls, 'Tesselations', 0, 8).step(1);
-  gui.addColor(controls, 'Color');
-  gui.add(controls, 'Geometry');
+  gui.addColor(controls, 'BaseColor');
+  gui.addColor(controls, 'SecondaryColor');
+  gui.addColor(controls, 'TertiaryColor');
+  gui.add(controls, 'Persistence', 0.0, 1.0);
+  gui.add(controls, 'Amplitude', 0.25, 1.0);
+  gui.add(controls, 'Frequency', 0.0, 10.0);
+  gui.add(controls, 'Octaves', 1, 10).step(1);
   gui.add(controls, 'Load Scene');
 
   // Get canvas and webgl context
@@ -71,36 +72,51 @@ function main() {
   gl.enable(gl.DEPTH_TEST);
 
   const shader = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/custom-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/custom-frag.glsl')),
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-frag.glsl')),
   ]);
 
   // This function will be called every frame
   function tick() {
+    // Tick time
     time += 0.01;
+
+    // Start necessary systems for rendering
     camera.update();
     stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
-    if (controls.Geometry) {
-      icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.Tesselations);
-      icosphere.create();
-      toDraw = [icosphere];
-    } else {
-      cube = new Cube(vec3.fromValues(0, 0, 0));
-      cube.create();
-      toDraw = [cube];
-    }
+
+    // Draw the icosphere
+    icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.Tesselations);
+    icosphere.create();
+    toDraw = [icosphere];
+
+    // Check if tesselation level changed
     if(controls.Tesselations != prevTesselations)
     {
       prevTesselations = controls.Tesselations;
       icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
       icosphere.create();
     }
-    if (controls.Color != prevColor) {
-      prevColor = controls.Color;
-    }
-    renderer.render(camera, shader, vec4.fromValues(controls.Color[0] / 255, controls.Color[1] / 255, controls.Color[2] / 255, 1), time, toDraw);
+
+    // Make colors into vec4s for shader
+    let baseColor = vec4.fromValues(controls.BaseColor[0] / 255, controls.BaseColor[1] / 255, controls.BaseColor[2] / 255, 1);
+    let secondaryColor = vec4.fromValues(controls.SecondaryColor[0] / 255, controls.SecondaryColor[1] / 255, controls.SecondaryColor[2] / 255, 1);
+    let tertiaryColor = vec4.fromValues(controls.TertiaryColor[0] / 255, controls.TertiaryColor[1] / 255, controls.TertiaryColor[2] / 255, 1);
+
+    // Set shader uniforms
+    shader.setBaseColor(baseColor);
+    shader.setSecondaryColor(secondaryColor);
+    shader.setTertiaryColor(tertiaryColor);
+    shader.setTime(time);
+    shader.setPersistence(controls.Persistence);
+    shader.setAmplitude(controls.Amplitude);
+    shader.setFrequency(controls.Frequency);
+    shader.setOctaves(controls.Octaves);
+
+    // Draw
+    renderer.render(camera, shader, baseColor, toDraw);
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame

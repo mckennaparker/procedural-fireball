@@ -28,8 +28,15 @@ class ShaderProgram {
   unifModel: WebGLUniformLocation;
   unifModelInvTr: WebGLUniformLocation;
   unifViewProj: WebGLUniformLocation;
-  unifColor: WebGLUniformLocation;
+  unifBaseColor: WebGLUniformLocation;
+  unifSecondaryColor: WebGLUniformLocation;
+  unifTertiaryColor: WebGLUniformLocation;
   unifTime: WebGLUniformLocation;
+  unifPersistence: WebGLUniformLocation;
+  unifAmplitude: WebGLUniformLocation;
+  unifFrequency: WebGLUniformLocation;
+  unifOctaves: WebGLUniformLocation;
+
 
   constructor(shaders: Array<Shader>) {
     this.prog = gl.createProgram();
@@ -48,8 +55,14 @@ class ShaderProgram {
     this.unifModel      = gl.getUniformLocation(this.prog, "u_Model");
     this.unifModelInvTr = gl.getUniformLocation(this.prog, "u_ModelInvTr");
     this.unifViewProj   = gl.getUniformLocation(this.prog, "u_ViewProj");
-    this.unifColor      = gl.getUniformLocation(this.prog, "u_Color");
+    this.unifBaseColor  = gl.getUniformLocation(this.prog, "u_BaseColor");
+    this.unifSecondaryColor  = gl.getUniformLocation(this.prog, "u_SecondaryColor");
+    this.unifTertiaryColor  = gl.getUniformLocation(this.prog, "u_TertiaryColor");
     this.unifTime       = gl.getUniformLocation(this.prog, "u_Time");
+    this.unifPersistence = gl.getUniformLocation(this.prog, "u_Persistence");
+    this.unifAmplitude = gl.getUniformLocation(this.prog, "u_Amplitude");
+    this.unifFrequency = gl.getUniformLocation(this.prog, "u_Frequency");
+    this.unifOctaves = gl.getUniformLocation(this.prog, "u_Octaves");
   }
 
   use() {
@@ -80,10 +93,24 @@ class ShaderProgram {
     }
   }
 
-  setGeometryColor(color: vec4) {
+  setBaseColor(color: vec4) {
     this.use();
-    if (this.unifColor !== -1) {
-      gl.uniform4fv(this.unifColor, color);
+    if (this.unifBaseColor !== -1) {
+      gl.uniform4fv(this.unifBaseColor, color);
+    }
+  }
+
+  setSecondaryColor(color: vec4) {
+    this.use();
+    if (this.unifSecondaryColor !== -1) {
+      gl.uniform4fv(this.unifSecondaryColor, color);
+    }
+  }
+
+  setTertiaryColor(color: vec4) {
+    this.use();
+    if (this.unifTertiaryColor !== -1) {
+      gl.uniform4fv(this.unifTertiaryColor, color);
     }
   }
 
@@ -91,6 +118,34 @@ class ShaderProgram {
     this.use();
     if (this.unifTime !== -1) {
       gl.uniform1f(this.unifTime, time);
+    }
+  }
+
+  setPersistence(persistence: number) {
+    this.use();
+    if (this.unifPersistence !== -1) {
+      gl.uniform1f(this.unifPersistence, persistence);
+    }
+  }
+
+  setAmplitude(amplitude: number) {
+    this.use();
+    if (this.unifAmplitude !== -1) {
+      gl.uniform1f(this.unifAmplitude, amplitude);
+    }
+  }
+
+  setFrequency(frequency: number) {
+    this.use();
+    if (this.unifFrequency !== -1) {
+      gl.uniform1f(this.unifFrequency, frequency);
+    }
+  }
+
+  setOctaves(octaves: number) {
+    this.use();
+    if (this.unifOctaves !== -1) {
+      gl.uniform1f(this.unifOctaves, octaves);
     }
   }
 
