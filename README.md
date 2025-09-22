@@ -1,5 +1,10 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
+## Submission
+I implemented my procedural fireball using FBM and Worley noise as well as a few of the toolbox functions from lecture. I create the elongated shape using FBM and varying toolbox functions for each part of the position. I then create the color by using FBM along with Worley noise and combining the user selected colors to make it more of a gradient. I also created more of a flame shape by using the discard function with the noise function to get rid of points towards the top of the shape.
+
+[Live Demo](https://mckennaparker.github.io/procedural-fireball/)
+
 ## Objective
 
 Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
